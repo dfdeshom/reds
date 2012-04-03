@@ -17,12 +17,14 @@ class RedisLRUCache(object):
         if excess <= 0:
             return
         for i in range(excess):
-            elements = self.conn.zrevrange(self.lrulistname,self.size-1,-1)
+            elements = self.conn.zrevrange(self.lrulistname,self.size,-1)
             #print 'removing ', elements
             #print 'current list', self.conn.zrange(self.lrulistname,0,-1,withscores=1)
+            pipe = self.conn.pipeline()
             for el in elements:
-                self.conn.hdel(self.cachename,el)
-                self.conn.zrem(self.lrulistname,el)
+                pipe.hdel(self.cachename,el)
+                pipe.zrem(self.lrulistname,el)
+            pipe.execute()
         return
     
     def get(self,key):
@@ -42,9 +44,11 @@ class RedisLRUCache(object):
         return
 
     def clear(self):
-        self.conn.delete(self.cachename)
-        self.conn.delete(self.lrulistname)
-        self.conn.delete(self.countkey)
+        pipe = self.conn.pipeline()
+        pipe.delete(self.cachename)
+        pipe.delete(self.lrulistname)
+        pipe.delete(self.countkey)
+        pipe.execute()
         
     def __contains__(self, key):
         res = self.get(key)
