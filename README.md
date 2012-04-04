@@ -1,2 +1,2 @@
 # reds
-Redis-backed data structures. An implmentation of popular data structures using Redis. 
+Redis-backed data structures. An implementation of some data structures using Redis. 
